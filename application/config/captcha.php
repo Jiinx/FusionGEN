@@ -6,7 +6,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * Enable captcha for site
  *
  */
-$config['use_captcha'] = true;
+$config['use_captcha'] = false;
 
 /**
  *
