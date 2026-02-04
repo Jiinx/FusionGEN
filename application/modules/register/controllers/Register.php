@@ -32,6 +32,7 @@ class Register extends MX_Controller
         clientLang("password_limit_length", "register");
         clientLang("pw_dont_match", "register");
         clientLang("the_account", "register");
+        clientLang("has_been_created", "register");
         clientLang("has_been_created_redirecting", "register");
         clientLang("user_panel", "register");
 
@@ -94,7 +95,7 @@ class Register extends MX_Controller
                         $subject,
                         $username,
                         $message,
-                        $this->config->item('activation_email_template_id')
+                        2
                     );
 
                     die(json_encode(['status' => 'success', 'email_activation' => true]));

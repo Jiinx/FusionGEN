@@ -12,7 +12,7 @@
 	</p>
 	{if !$auto_login}
 		<p>
-			{anchor("login", lang("log_in", "auth"))}
+			<a href="{$url}login">{lang("log_in", "auth")}</a>
 		</p>
 	{/if}
 </div>
