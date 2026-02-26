@@ -82,14 +82,17 @@ class Accounts_model extends CI_Model
 
     public function getAccessId($userId = 0)
     {
+        $gm_column = (preg_match("/mangos/i", get_class($this->realms->getEmulator()))) ? column("account", "gmlevel") : column("account_access", "gmlevel");
+
         if (preg_match("/mangos/i", get_class($this->realms->getEmulator()))) {
-            $query = $this->connection->query("SELECT " . column("account", "gmlevel", true) . " FROM " . table("account") . " WHERE " . column("account", "id") . " = ?", [$userId]);
+            $query = $this->connection->query("SELECT " . column("account", "gmlevel") . " FROM " . table("account") . " WHERE " . column("account", "id") . " = ?", [$userId]);
         } else {
-            $query = $this->connection->query("SELECT " . column("account_access", "gmlevel", true) . " FROM " . table("account_access") . " WHERE " . column("account_access", "id") . " = ?", [$userId]);
+            $query = $this->connection->query("SELECT " . column("account_access", "gmlevel") . " FROM " . table("account_access") . " WHERE " . column("account_access", "id") . " = ?", [$userId]);
         }
 
         if ($query->num_rows() > 0) {
             $result = $query->result_array();
+            $result[0]['gmlevel'] = $result[0][$gm_column];
             return $result[0];
         } else {
             return false;
@@ -100,8 +103,9 @@ class Accounts_model extends CI_Model
     {
         $old_external_data = $this->accounts_model->getById($id);
         $old_internal_data = $this->accounts_model->getInternalDetails($id);
+        $old_access_data   = $this->getAccessId($id);
 
-        $old_values = array_merge($old_external_data, $old_internal_data);
+        $old_values = array_merge($old_external_data, $old_internal_data, ($old_access_data) ? $old_access_data : []);
         $new_values = array_merge($external_account_data, $external_account_access_data, $internal_data);
 
         // Initialize an empty array to store the changed values
@@ -109,9 +113,10 @@ class Accounts_model extends CI_Model
 
         // Compare the old and new values and store the changed values in the array
         foreach ($new_values as $key => $value) {
-            if (isset($old_values[$key]) && $old_values[$key] != $value) {
+            $old_value = (isset($old_values[$key])) ? $old_values[$key] : null;
+            if ($old_value != $value) {
                 $changed_values[$key] = [
-                    'old' => $old_values[$key],
+                    'old' => $old_value,
                     'new' => $value
                 ];
             }
@@ -128,14 +133,18 @@ class Accounts_model extends CI_Model
                 $this->connection->update(table('account_access'), $external_account_access_data);
             }
         } else {
-            if (preg_match("/mangos/i", get_class($this->realms->getEmulator()))) {
-                // Update external access
-                $external_account_access_data[column('account', 'id')] = $id;
-                $this->connection->insert(table('account'), $external_account_access_data);
-            } else {
-                // Update external access
-                $external_account_access_data[column('account_access', 'id')] = $id;
-                $this->connection->insert(table('account_access'), $external_account_access_data);
+            $gm_column = (preg_match("/mangos/i", get_class($this->realms->getEmulator()))) ? column('account', 'gmlevel') : column('account_access', 'gmlevel');
+
+            if (isset($external_account_access_data[$gm_column]) && $external_account_access_data[$gm_column] > 0) {
+                if (preg_match("/mangos/i", get_class($this->realms->getEmulator()))) {
+                    // Update external access
+                    $external_account_access_data[column('account', 'id')] = $id;
+                    $this->connection->insert(table('account'), $external_account_access_data);
+                } else {
+                    // Update external access
+                    $external_account_access_data[column('account_access', 'id')] = $id;
+                    $this->connection->insert(table('account_access'), $external_account_access_data);
+                }
             }
         }
 

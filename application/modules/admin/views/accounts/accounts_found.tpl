@@ -123,9 +123,7 @@
 								<label for="gm_level">GM-level</label>
 								<div data-plugin-spinner data-plugin-options='{ "min": 0, "max": 99 }'>
 									<div class="input-group">
-										{foreach from=$access_id item=gmlevel}
-											<input class="spinner-input form-control" type="text" id="gm_level" name="gm_level" value="{if !$gmlevel}0{else}{$gmlevel}{/if}" {if !hasPermission("editAccounts")}disabled="disabled"{/if}>
-										{/foreach}
+										<input class="spinner-input form-control" type="text" id="gm_level" name="gm_level" value="{if !$access_id}0{else}{$access_id.gmlevel}{/if}" {if !hasPermission("editAccounts")}disabled="disabled"{/if}>
 										<div class="spinner-buttons input-group-btn btn-group-vertical">
 											<button type="button" class="btn spinner-up btn-xs btn-default" {if !hasPermission("editAccounts")}disabled="disabled"{/if}>
 												<i class="fas fa-angle-up"></i>
