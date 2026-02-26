@@ -178,48 +178,24 @@ class Admin extends MX_Controller
             $data = $cache;
         } else {
             $rows = $this->dashboard_model->getGraph(true);
-    
-            $fullMonth = [];
-    
-            foreach ($rows as $row)
+            $dbData = [];
+
+            if ($rows)
             {
-                $expld = explode("-", $row["date"]);
-    
-                $year = $expld[0];
-                $month = $expld[1];
-                $day = $expld[2];
-    
-                $date = new DateTime();
-                $fullDays = [];
-                for ($i = 1; $i <= 31; $i++)
+                foreach ($rows as $row)
                 {
-                    if ($date->format("Y") == $year && $date->format("m") == $month && $i > $date->format("d"))
-                    {
-                        continue;
-                    }
-    
-                    $fullDays[($i < 10 ? "0" : "") . $i] = 0;
-                }
-    
-                if (!isset($fullMonth[$year]["day"]))
-                {
-                    $fullMonth[$year]["day"] = $fullDays;
-                }
-    
-                if (isset($fullMonth[$year]["day"][$day]))
-                {
-                    $fullMonth[$year]["day"][$day] += $row["ipCount"];
+                    $dbData[$row['date']] = (int)$row['ipCount'];
                 }
             }
-    
-            $currentYear = date('Y');
-            $currentMonth = date('m');
-    
-            $data = $fullMonth[$currentYear]["day"];
 
-            if (!isset($data))
+            $data = [];
+            for ($i = 29; $i >= 0; $i--)
             {
-                $data = [];
+                $time = strtotime("-" . $i . " days");
+                $dateKey = date("Y-m-d", $time);
+                $displayLabel = date("M d", $time);
+                
+                $data[$displayLabel] = $dbData[$dateKey] ?? 0;
             }
 
             $this->cache->save("dashboard_daily", $data, 60 * 60 * 24);
